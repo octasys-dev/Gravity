@@ -33,7 +33,7 @@ endif
 ifeq ($(OS),Windows_NT)
     PD_INCLUDE = ./pd/include
     LINKFLAGS = -shared
-    EXT = dll
+    EXT = pd_windows
     CXXFLAGS_BASE = -Wall -Wextra -I$(PD_INCLUDE)
 endif
 
