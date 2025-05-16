@@ -1,0 +1,30 @@
+// server.js
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+
+const app = express();
+const DATA_FILE = "3bp.json";
+
+// Statische Dateien (HTML/JS) im gleichen Verzeichnis
+app.use(express.static(path.join(__dirname)));
+
+// Endpoint für die aktuellen Koordinaten
+app.get("/data", (req, res) => {
+  fs.readFile("3bp.txt", "utf8", (err, raw) => {
+    if (err) return res.status(204).send();
+    const clean = raw.replace(/[;\r\n]/g, ""); // entfernt ; und Zeilenumbrüche
+    const [a_x, a_y, b_x, b_y, c_x, c_y] = clean.trim().split(/\s+/).map(Number);
+    res.json({
+      a: [a_x, a_y],
+      b: [b_x, b_y],
+      c: [c_x, c_y],
+    });
+  });
+});
+
+// Server starten
+const PORT = 8080;
+app.listen(PORT, () =>
+  console.log(`Start frontend here: http://localhost:${PORT}`)
+);

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>10 Body System</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    canvas {
+      background: black;
+      margin-top: 20px;
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    input[type=range] {
+      width: 200px;
+    }
+
+    span[id$="Value"] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="sim"></canvas>
+
+  <div class="controls" style="margin-top: 3rem;">
+    <label for="zoom">Zoom:</label>
+    <input type="range" id="zoom" min="0.1" max="1200" step="1" value="300">
+    <span id="zoomValue">300</span>
+
+    <label for="trail">Trail:</label>
+    <input type="range" id="trail" min="0" max="10000" step="100" value="0">
+    <span id="trailValue">0</span>
+
+    <label for="radius">Body size:</label>
+    <input type="range" id="radius" min="3" max="20" step="1" value="8">
+    <span id="radiusValue">8</span>
+
+    <label>
+      <input type="checkbox" id="toggleId10">
+      Show black hole
+    </label>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("sim");
+    const ctx = canvas.getContext("2d");
+
+    const zoomSlider = document.getElementById("zoom");
+    const zoomValue = document.getElementById("zoomValue");
+
+    const trailSlider = document.getElementById("trail");
+    const trailValue = document.getElementById("trailValue");
+
+    const radiusSlider = document.getElementById("radius");
+    const radiusValue = document.getElementById("radiusValue");
+
+    let maxTrailLength = parseInt(trailSlider.value);
+    let bodyRadius = parseInt(radiusSlider.value);
+
+    trailSlider.addEventListener("input", () => {
+      maxTrailLength = parseInt(trailSlider.value);
+      trailValue.textContent = maxTrailLength;
+    });
+
+    radiusSlider.addEventListener("input", () => {
+      bodyRadius = parseInt(radiusSlider.value);
+      radiusValue.textContent = bodyRadius;
+    });
+
+    // Define 10 unique body IDs
+    const bodyIDs = Array.from({ length: 11 }, (_, i) => `id${i}`);
+
+    // Trail storage for each body
+    const trails = {};
+    bodyIDs.forEach(id => trails[id] = []);
+
+    // Assign unique colors to each body
+    const colors = {
+      id0: "#ff3c3c",
+      id1: "#3c8aff",
+      id2: "#2caf58",
+      id3: "#ffcc00",
+      id4: "#ff66cc",
+      id5: "#00ffff",
+      id6: "#9966ff",
+      id7: "#ffaa00",
+      id8: "#00cc66",
+      id9: "#cccccc",
+      id10: "#000000"
+    };
+
+    // Function to resize canvas responsively and support high-DPI screens
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = window.innerWidth;
+      const height = window.innerHeight - 150; // Leave room for controls
+
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any scaling
+      ctx.scale(dpr, dpr); // Apply new DPI scaling
+    }
+
+    // Convert world coordinates to canvas coordinates
+    function toCanvasCoords(x, y, zoom) {
+      const scale = canvas.width / (zoom * 2);
+      const cx = canvas.width / 2 / (window.devicePixelRatio || 1) + x * scale;
+      const cy = canvas.height / 2 / (window.devicePixelRatio || 1) - y * scale;
+      return [cx, cy];
+    }
+
+    function draw(data) {
+      const zoom = Math.max(parseFloat(zoomSlider.value), 0.1);
+      zoomValue.textContent = zoom;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const showId10 = toggleId10.checked;
+      const WORLD_BOUND = 10000;
+
+      // ==== Renderbereich anzeigen ====
+      const topLeft = toCanvasCoords(-WORLD_BOUND, WORLD_BOUND, zoom);
+      const bottomRight = toCanvasCoords(WORLD_BOUND, -WORLD_BOUND, zoom);
+
+      const x1 = Math.min(topLeft[0], bottomRight[0]);
+      const y1 = Math.min(topLeft[1], bottomRight[1]);
+      const width = Math.abs(bottomRight[0] - topLeft[0]);
+      const height = Math.abs(bottomRight[1] - topLeft[1]);
+
+      // Hintergrund
+      ctx.fillStyle = "#111";
+      ctx.fillRect(x1, y1, width, height);
+
+      const VALUE_BOUND = 100;
+
+      // Umrechnen in Canvas-Koordinaten
+      const [xMin, yMax] = toCanvasCoords(-VALUE_BOUND, VALUE_BOUND, zoom);
+      const [xMax, yMin] = toCanvasCoords(VALUE_BOUND, -VALUE_BOUND, zoom);
+
+      const bwidth = xMax - xMin;
+      const bheight = yMax - yMin;
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#888";
+      ctx.lineWidth = 1.5;
+      ctx.rect(xMin, yMin, bwidth, bheight);
+      ctx.stroke();
+
+      // Rahmen
+      ctx.beginPath();
+      ctx.strokeStyle = "#444";
+      ctx.lineWidth = 1;
+      ctx.rect(x1, y1, width, height);
+      ctx.stroke();
+
+      // ==== Trails aktualisieren ====
+      for (const id of bodyIDs) {
+        if (!data[id]) continue;
+        if (id === "id10" && !showId10) continue;
+
+        if (maxTrailLength > 0) {
+          trails[id].push([...data[id]]);
+          if (trails[id].length > maxTrailLength) trails[id].shift();
+        } else {
+          trails[id] = [];
+        }
+      }
+
+      // ==== Trails zeichnen ====
+      if (maxTrailLength > 0) {
+        for (const id of bodyIDs) {
+          if (id === "id10" && !showId10) continue;
+          if (!data[id]) continue;
+
+          ctx.beginPath();
+          ctx.strokeStyle = (id === "id10") ? "#ffa500" : (colors[id] || "white");
+
+          trails[id].forEach(([x, y], i) => {
+            const [cx, cy] = toCanvasCoords(x, y, zoom);
+            if (i === 0) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+          });
+          ctx.stroke();
+        }
+      }
+
+      // ==== Körper zeichnen ====
+      for (const id of bodyIDs) {
+        if (!data[id]) continue;
+        if (id === "id10" && !showId10) continue;
+
+        const [x, y] = data[id];
+        const [cx, cy] = toCanvasCoords(x, y, zoom);
+
+        ctx.beginPath();
+        const radius = (id === "id10") ? bodyRadius * 1.2 : bodyRadius;
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = colors[id] || "white";
+        ctx.fill();
+
+        if (id === "id10") {
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#ffa500";
+          ctx.stroke();
+        }
+      }
+
+      // ==== Achsenkreuz ====
+      const [cx, cy] = toCanvasCoords(0, 0, zoom);
+      ctx.strokeStyle = "#666";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x1, cy);
+      ctx.lineTo(x1 + width, cy);
+      ctx.moveTo(cx, y1);
+      ctx.lineTo(cx, y1 + height);
+      ctx.stroke();
+
+      // ==== Mittelpunkt-Kreuz ====
+      const dpr = window.devicePixelRatio || 1;
+      const centerX = canvas.width / 2 / dpr;
+      const centerY = canvas.height / 2 / dpr;
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(centerX - 10, centerY);
+      ctx.lineTo(centerX + 10, centerY);
+      ctx.moveTo(centerX, centerY - 10);
+      ctx.lineTo(centerX, centerY + 10);
+      ctx.stroke();
+    }
+
+
+    // Periodic data fetch and redraw
+    setInterval(() => {
+      fetch("/data")
+        .then(r => r.json())
+        .then(draw)
+        .catch(() => { });
+    }, 50);
+
+    // Resize canvas on window size changes
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas(); // Initial call
+  </script>
+
+</body>
+
+</html>
