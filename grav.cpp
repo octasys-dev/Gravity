@@ -2,12 +2,12 @@
 // This file has been split into simulation and PD interface parts.
 // You are currently viewing: Pure Data wrapper implementation
 
-#include "g.h"
+#include "grav.h"
 
-t_class *g_class = nullptr;
+t_class *grav_class = nullptr;
 
 // Project output values (optional transformation)
-static float project(t_g *x, float val)
+static float project(t_grav *x, float val)
 {
     return val * x->expand_scale;
 }
@@ -19,7 +19,7 @@ static float project(t_g *x, float val)
 // 3: Body Nr, Vx, Vy
 // 4: Body Nr, Ax, Ay
 // 5: Black hole
-static void g_out(t_g *x)
+static void grav_out(t_grav *x)
 {
     Body hole;
     std::vector<Body> copy;
@@ -76,7 +76,7 @@ static void g_out(t_g *x)
 }
 
 // Output of body initialization values on outlet 4
-void g_outinit(t_g *x)
+void grav_outinit(t_grav *x)
 {
     t_atom output[6];
 
@@ -97,7 +97,7 @@ void g_outinit(t_g *x)
 }
 
 // Output of body initialization values on outlet 5
-void g_outparams(t_g *x)
+void grav_outparams(t_grav *x)
 {
     t_atom output;
 
@@ -154,14 +154,14 @@ void g_outparams(t_g *x)
 }
 
 // Bang message: triggers one simulation step and sends output
-void g_bang(t_g *x)
+void grav_bang(t_grav *x)
 {
     x->system->simulate();
-    g_out(x);
+    grav_out(x);
 }
 
 // Sets speed of simulation as a float in range [0.0, 1.0]
-void g_speed(t_g *x, t_floatarg val)
+void grav_speed(t_grav *x, t_floatarg val)
 {
     if (val < 0.0f || val > 1.0f)
     {
@@ -173,7 +173,7 @@ void g_speed(t_g *x, t_floatarg val)
 }
 
 // Scaling of value ranges
-void g_scale(t_g *x, t_floatarg val)
+void grav_scale(t_grav *x, t_floatarg val)
 {
     if (val < 1.0f || val > 100.0f)
     {
@@ -185,7 +185,7 @@ void g_scale(t_g *x, t_floatarg val)
 }
 
 // Limits -100 100 on/off
-void g_limits(t_g *x, t_floatarg val)
+void grav_limits(t_grav *x, t_floatarg val)
 {
     if (val < 0.0f || val > 1.0f)
     {
@@ -197,25 +197,25 @@ void g_limits(t_g *x, t_floatarg val)
 }
 
 // Nudges the bodies
-void g_nudge(t_g *x)
+void grav_nudge(t_grav *x)
 {
     x->system->nudge();
 }
 
 // Parameter setters delegate to simulation
-void g_dt(t_g *x, t_floatarg val) { x->system->setDt(val); }
-void g_G(t_g *x, t_floatarg val) { x->system->setG(val); }
-void g_posdamp(t_g *x, t_floatarg val) { x->system->setPosDamping(val); }
-void g_veldamp(t_g *x, t_floatarg val) { x->system->setVelDamping(val); }
-void g_softening(t_g *x, t_floatarg val) { x->system->setSoftening(val); }
-void g_vmin(t_g *x, t_floatarg val) { x->system->setVmin(val); }
-void g_vmax(t_g *x, t_floatarg val) { x->system->setVmax(val); }
-void g_preset(t_g *x, t_floatarg val) { x->system->loadPreset(static_cast<int>(val)); }
-void g_reset(t_g *x, t_floatarg) { x->system->reset(); }
-void g_count(t_g *x, t_floatarg val) { x->system->setBodyCount(static_cast<int>(val)); }
+void grav_dt(t_grav *x, t_floatarg val) { x->system->setDt(val); }
+void grav_G(t_grav *x, t_floatarg val) { x->system->setG(val); }
+void grav_posdamp(t_grav *x, t_floatarg val) { x->system->setPosDamping(val); }
+void grav_veldamp(t_grav *x, t_floatarg val) { x->system->setVelDamping(val); }
+void grav_softening(t_grav *x, t_floatarg val) { x->system->setSoftening(val); }
+void grav_vmin(t_grav *x, t_floatarg val) { x->system->setVmin(val); }
+void grav_vmax(t_grav *x, t_floatarg val) { x->system->setVmax(val); }
+void grav_preset(t_grav *x, t_floatarg val) { x->system->loadPreset(static_cast<int>(val)); }
+void grav_reset(t_grav *x, t_floatarg) { x->system->reset(); }
+void grav_count(t_grav *x, t_floatarg val) { x->system->setBodyCount(static_cast<int>(val)); }
 
 // Prints simulation parameters and states to PD console
-void g_dump(t_g *x)
+void grav_dump(t_grav *x)
 {
     post("[g] --- Parameters ---");
     post("dt = %f", x->system->getDt());
@@ -246,7 +246,7 @@ void g_dump(t_g *x)
 }
 
 // Set individual body parameters from message: [body index x y vx vy mass(
-void g_body(t_g *x, t_symbol *, int argc, t_atom *argv)
+void grav_body(t_grav *x, t_symbol *, int argc, t_atom *argv)
 {
     if (argc != 6 || argv[0].a_type != A_FLOAT)
         return;
@@ -266,7 +266,7 @@ void g_body(t_g *x, t_symbol *, int argc, t_atom *argv)
 }
 
 // Changes a bodies mass at simulation time [mass index m(
-void g_mass(t_g *x, t_symbol *, int argc, t_atom *argv)
+void grav_mass(t_grav *x, t_symbol *, int argc, t_atom *argv)
 {
     if (argc != 2 || argv[0].a_type != A_FLOAT)
         return;
@@ -280,7 +280,7 @@ void g_mass(t_g *x, t_symbol *, int argc, t_atom *argv)
     x->system->setBodyMass(index, mass);
 }
 
-void g_hole(t_g *x, t_symbol *, int argc, t_atom *argv)
+void grav_hole(t_grav *x, t_symbol *, int argc, t_atom *argv)
 {
     if (argc != 3 || argv[0].a_type != A_FLOAT)
         return;
@@ -293,18 +293,18 @@ void g_hole(t_g *x, t_symbol *, int argc, t_atom *argv)
 }
 
 // Internal DSP loop: advances simulation if time has passed
-static void g_tick(t_g *x)
+static void grav_tick(t_grav *x)
 {
     if (!x->running_thread.load())
         return;
 
-    g_out(x);
+    grav_out(x);
 
     clock_delay(x->clock, x->timestep_ms);
 }
 
 // Worker thread executes simulation
-void simulate_thread(t_g *x)
+void simulate_thread(t_grav *x)
 {
     using clock = std::chrono::steady_clock;
     auto next_time = clock::now();
@@ -336,7 +336,7 @@ void simulate_thread(t_g *x)
 }
 
 // Start simulation loop
-void g_start(t_g *x)
+void grav_start(t_grav *x)
 {
     if (x->running_thread.load())
         return;
@@ -345,12 +345,12 @@ void g_start(t_g *x)
     x->last_output = std::chrono::steady_clock::now();
     x->worker = std::thread(simulate_thread, x);
 
-    x->clock = clock_new(x, (t_method)g_tick);
+    x->clock = clock_new(x, (t_method)grav_tick);
     clock_delay(x->clock, x->timestep_ms);
 }
 
 // Stop simulation loop
-void g_stop(t_g *x)
+void grav_stop(t_grav *x)
 {
     x->running_thread = false;
     if (x->worker.joinable())
@@ -361,9 +361,9 @@ void g_stop(t_g *x)
 }
 
 // Creates new instance of the PD object
-void *g_new()
+void *grav_new()
 {
-    t_g *x = reinterpret_cast<t_g *>(pd_new(g_class));
+    t_grav *x = reinterpret_cast<t_grav *>(pd_new(grav_class));
 
     x->out_bang = outlet_new(&x->x_obj, &s_bang);       // bang on finish
     x->out_pos = outlet_new(&x->x_obj, &s_list);        // outlet 2 for positions
@@ -384,7 +384,7 @@ void *g_new()
 }
 
 // Destructor: frees simulation object
-void g_free(t_g *x)
+void grav_free(t_grav *x)
 {
     // Ensure thread is stopped before deleting the system
     x->running_thread = false;
@@ -396,36 +396,36 @@ void g_free(t_g *x)
 }
 
 // Setup function: called when external is loaded by PD
-extern "C" void g_setup(void)
+extern "C" void grav_setup(void)
 {
-    g_class = class_new(gensym("g"),
-                        reinterpret_cast<t_newmethod>(g_new),
-                        reinterpret_cast<t_method>(g_free),
-                        sizeof(t_g),
+    grav_class = class_new(gensym("grav"),
+                        reinterpret_cast<t_newmethod>(grav_new),
+                        reinterpret_cast<t_method>(grav_free),
+                        sizeof(t_grav),
                         CLASS_DEFAULT, A_NULL);
 
-    CLASS_MAINSIGNALIN(g_class, t_g, x_f);
-    class_addbang(g_class, reinterpret_cast<t_method>(g_bang));
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_body), gensym("body"), A_GIMME, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_mass), gensym("mass"), A_GIMME, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_hole), gensym("hole"), A_GIMME, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_dt), gensym("dt"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_G), gensym("G"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_posdamp), gensym("posdamp"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_veldamp), gensym("veldamp"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_softening), gensym("softening"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_vmin), gensym("vmin"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_vmax), gensym("vmax"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_preset), gensym("preset"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_dump), gensym("dump"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_count), gensym("count"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_reset), gensym("reset"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_start), gensym("start"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_outparams), gensym("params"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_outinit), gensym("init"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_stop), gensym("stop"), A_NULL);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_speed), gensym("speed"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_scale), gensym("scale"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_limits), gensym("limits"), A_FLOAT, 0);
-    class_addmethod(g_class, reinterpret_cast<t_method>(g_nudge), gensym("nudge"), A_NULL);
+    CLASS_MAINSIGNALIN(grav_class, t_grav, x_f);
+    class_addbang(grav_class, reinterpret_cast<t_method>(grav_bang));
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_body), gensym("body"), A_GIMME, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_mass), gensym("mass"), A_GIMME, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_hole), gensym("hole"), A_GIMME, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_dt), gensym("dt"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_G), gensym("G"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_posdamp), gensym("posdamp"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_veldamp), gensym("veldamp"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_softening), gensym("softening"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_vmin), gensym("vmin"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_vmax), gensym("vmax"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_preset), gensym("preset"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_dump), gensym("dump"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_count), gensym("count"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_reset), gensym("reset"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_start), gensym("start"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_outparams), gensym("params"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_outinit), gensym("init"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_stop), gensym("stop"), A_NULL);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_speed), gensym("speed"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_scale), gensym("scale"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_limits), gensym("limits"), A_FLOAT, 0);
+    class_addmethod(grav_class, reinterpret_cast<t_method>(grav_nudge), gensym("nudge"), A_NULL);
 }

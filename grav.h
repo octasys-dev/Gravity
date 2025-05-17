@@ -1,8 +1,8 @@
 // g.h – Interface declarations for the Pure Data wrapper
 // This header defines all PD-specific interaction methods and the wrapper struct
 
-#ifndef G_H
-#define G_H
+#ifndef GRAV_H
+#define GRAV_H
 
 extern "C"
 {
@@ -17,7 +17,7 @@ extern "C"
 #include "Gravity.h"
 
 // Internal data structure for the Pure Data object
-struct t_g
+struct t_grav
 {
     t_object x_obj;                                    // Required for PD objects
     t_float x_f;                                       // DSP inlet dummy
@@ -50,4 +50,4 @@ struct t_g
     Gravity *system; // Pointer to the simulation system
 };
 
-#endif // G_H
+#endif // GRAF_H

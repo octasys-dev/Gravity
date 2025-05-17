@@ -41,15 +41,15 @@ endif
 # === Compiler ===
 CXX = g++
 
-# === Project: g ===
-G_NAME = g
-G_SRC = g.cpp Gravity.cpp GravityMath.cpp
+# === Project: grav ===
+G_NAME = grav
+G_SRC = grav.cpp Gravity.cpp GravityMath.cpp
 G_OBJ = $(G_SRC:%.cpp=$(BUILD_DIR)/%.o)
 G_TARGET = $(BUILD_DIR)/$(G_NAME).$(EXT)
 
-# === Project: ganalyse ===
-ANALYSE_NAME = ganalyse
-ANALYSE_SRC = ganalyse.cpp
+# === Project: gravf ===
+ANALYSE_NAME = gravf
+ANALYSE_SRC = gravf.cpp
 ANALYSE_OBJ = $(ANALYSE_SRC:%.cpp=$(BUILD_DIR)/%.o)
 ANALYSE_TARGET = $(BUILD_DIR)/$(ANALYSE_NAME).$(EXT)
 

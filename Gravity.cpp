@@ -5,7 +5,7 @@
 #include "GravityMath.h"
 #include "m_pd.h" // For pd_error and post (Pure Data logging)
 
-extern t_class *g_class; // External reference for error logging
+extern t_class *grav_class; // External reference for error logging
 
 Gravity::Gravity()
 {
@@ -16,7 +16,14 @@ Gravity::Gravity()
 
     initParams();
     loadPreset(0);
-    post("gravity constructed");
+    post("");
+    post("      .     o");
+    post("        \\  /|\\        .");
+    post("      o---> * <---o");
+    post("        /  \\|/        o");
+    post("           o     .");
+    post("");
+    post("Chaos engaged – gravitational system online");
 }
 
 // Destructor
@@ -52,7 +59,7 @@ void Gravity::setG(float g)
 {
     if (g < 0.0f || g > 10.0f)
     {
-        pd_error(g_class, "[g] G must be in (0.1, 10], got %f", g);
+        pd_error(grav_class, "[grav] G must be in (0.1, 10], got %f", g);
         return;
     }
 
@@ -64,7 +71,7 @@ void Gravity::setDt(float dt)
 {
     if (dt <= 0.0f || dt > 0.1f)
     {
-        pd_error(g_class, "[g] dt must be in (0.001, 0.1], got %f", dt);
+        pd_error(grav_class, "[grav] dt must be in (0.001, 0.1], got %f", dt);
         return;
     }
     this->dt = dt;
@@ -75,7 +82,7 @@ void Gravity::setPosDamping(float damp)
 {
     if (damp < 0.0f || damp > 0.1f)
     {
-        pd_error(g_class, "[g] posdamp must be in [0.0, 0.1], got %f", damp);
+        pd_error(grav_class, "[grav] posdamp must be in [0.0, 0.1], got %f", damp);
         return;
     }
 
@@ -87,7 +94,7 @@ void Gravity::setVelDamping(float damp)
 {
     if (damp < 0.0f || damp > 0.5f)
     {
-        pd_error(g_class, "[g] veldamp must be in [0.0, 0.5], got %f", damp);
+        pd_error(grav_class, "[grav] veldamp must be in [0.0, 0.5], got %f", damp);
         return;
     }
 
@@ -99,7 +106,7 @@ void Gravity::setSoftening(float s)
 {
     if (s < 0.0f || s > 5.0f)
     {
-        pd_error(g_class, "[g] softening must be in (0.0, 5.0], got %f", s);
+        pd_error(grav_class, "[grav] softening must be in (0.0, 5.0], got %f", s);
         return;
     }
 
@@ -111,7 +118,7 @@ void Gravity::setVmin(float v)
 {
     if (v < 0.1f || v > 1.0f)
     {
-        pd_error(g_class, "[g] vmin must be in (0.1, 1.0], got %f", v);
+        pd_error(grav_class, "[grav] vmin must be in (0.1, 1.0], got %f", v);
         return;
     }
 
@@ -125,7 +132,7 @@ void Gravity::setVmax(float v)
 {
     if (v < 1.0f || v > 5.0f)
     {
-        pd_error(g_class, "[g] vmax must be in (1.0, 5.0], got %f", v);
+        pd_error(grav_class, "[grav] vmax must be in (1.0, 5.0], got %f", v);
         return;
     }
 
@@ -140,7 +147,7 @@ void Gravity::setBodyCount(int count)
 {
     if (count < 2 || count > BodyCount)
     {
-        pd_error(g_class, "[g] count must be between 2 and %d, got %d", BodyCount, count);
+        pd_error(grav_class, "[grav] count must be between 2 and %d, got %d", BodyCount, count);
         return;
     }
 
@@ -152,13 +159,13 @@ void Gravity::setBodyMass(int index, float mass)
 {
     if (index < 0 || index > BodyCount - 1)
     {
-        pd_error(g_class, "[g] index must be between 0 and %d, got %d", BodyCount - 1, index);
+        pd_error(grav_class, "[grav] index must be between 0 and %d, got %d", BodyCount - 1, index);
         return;
     }
 
     if (mass < 0.1 || mass > 30)
     {
-        pd_error(g_class, "[g] mass must be between 0.1 and 30, got %f", mass);
+        pd_error(grav_class, "[grav] mass must be between 0.1 and 30, got %f", mass);
         return;
     }
 
@@ -171,19 +178,19 @@ void Gravity::setBlackHole(float x, float y, float mass)
 {
     if (x < -100 || x > 100)
     {
-        pd_error(g_class, "[g] black hole x must be between -50 and 50, got %f", x);
+        pd_error(grav_class, "[grav] black hole x must be between -50 and 50, got %f", x);
         return;
     }
 
     if (y < -100 || y > 100)
     {
-        pd_error(g_class, "[g] black hole y must be between -50 and 50, got %f", y);
+        pd_error(grav_class, "[grav] black hole y must be between -50 and 50, got %f", y);
         return;
     }
 
     if (mass < 0 || mass > 10000)
     {
-        pd_error(g_class, "[g] black hole mass must be between 0 and 10000, got %f", mass);
+        pd_error(grav_class, "[grav] black hole mass must be between 0 and 10000, got %f", mass);
         return;
     }
 
@@ -202,7 +209,7 @@ const Body &Gravity::getBody(int index) const
 {
     if (index < 0 || index > BodyCount - 1)
     {
-        pd_error(g_class, "[g] index must be between 0 and %d, got %d => 1. body returned", BodyCount - 1, index);
+        pd_error(grav_class, "[grav] index must be between 0 and %d, got %d => 1. body returned", BodyCount - 1, index);
         return bodies[0];
     }
 
@@ -220,7 +227,7 @@ const Body &Gravity::getInitBody(int index) const
 {
     if (index < 0 || index > BodyCount - 1)
     {
-        pd_error(g_class, "[g] nr must be between 0 and %d, got %d => 1. body returned", BodyCount - 1, index);
+        pd_error(grav_class, "[grav] nr must be between 0 and %d, got %d => 1. body returned", BodyCount - 1, index);
         return initBodies[0];
     }
 

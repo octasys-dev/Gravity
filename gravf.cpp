@@ -9,16 +9,16 @@
 #include <cmath>
 #include <cstring>
 
-static t_class *ganalyse_class;
-struct t_ganalyse;
+static t_class *gravf_class;
+struct t_gravf;
 
 // Function to execute
-typedef void (*AnalyseFunc)(t_ganalyse *x, int argc, t_atom *argv);
+typedef void (*Calculations)(t_gravf *x, int argc, t_atom *argv);
 
-struct t_ganalyse
+struct t_gravf
 {
     t_object x_obj;
-    AnalyseFunc func;
+    Calculations func;
     t_outlet *x_out;
     t_inlet *x_in_data; // Inlet for optional data
 
@@ -41,13 +41,13 @@ float angle(float x1, float y1, float x2, float y2)
     return std::atan2(y2 - y1, x2 - x1) * (180.0f / M_PI);
 }
 
-void calcdefault(t_ganalyse *x, [[maybe_unused]]int argc, [[maybe_unused]]t_atom *argv)
+void calcdefault(t_gravf *x, [[maybe_unused]]int argc, [[maybe_unused]]t_atom *argv)
 {
     outlet_float(x->x_out, 0.0f);
 }
 
 // Calulates the distance between two bodies or x/y locations
-void calcDistance(t_ganalyse *x, int argc, t_atom *argv)
+void calcDistance(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 4)
     {
@@ -65,7 +65,7 @@ void calcDistance(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Calulates the angle between two bodies
-void calcAngle(t_ganalyse *x, int argc, t_atom *argv)
+void calcAngle(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 4)
     {
@@ -83,7 +83,7 @@ void calcAngle(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Calulates the relative velocity between two bodies
-void calcRelativeV(t_ganalyse *x, int argc, t_atom *argv)
+void calcRelativeV(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 4)
     {
@@ -103,7 +103,7 @@ void calcRelativeV(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Calulates the approach rate between two bodies
-void calcApproach(t_ganalyse *x, int argc, t_atom *argv)
+void calcApproach(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 8)
     {
@@ -130,7 +130,7 @@ void calcApproach(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Calculates the center between two bodies
-void calcCenter(t_ganalyse *x, int argc, t_atom *argv)
+void calcCenter(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 4)
     {
@@ -150,7 +150,7 @@ void calcCenter(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Sends a bang when if a distance value has been exceeded
-void calcInZone(t_ganalyse *x, int argc, t_atom *argv)
+void calcInZone(t_gravf *x, int argc, t_atom *argv)
 {
     if (argc < 4)
     {
@@ -180,15 +180,15 @@ void calcInZone(t_ganalyse *x, int argc, t_atom *argv)
 }
 
 // Core list processing
-void ganalyse_list(t_ganalyse *x, t_symbol *, int argc, t_atom *argv)
+void gravf_list(t_gravf *x, t_symbol *, int argc, t_atom *argv)
 {
     x->func(x, argc, argv);
 }
 
 // Object creation
-void *ganalyse_new([[maybe_unused]] t_symbol *s, int argc, t_atom *argv)
+void *gravf_new([[maybe_unused]] t_symbol *s, int argc, t_atom *argv)
 {
-    t_ganalyse *x = (t_ganalyse *)pd_new(ganalyse_class);
+    t_gravf *x = (t_gravf *)pd_new(gravf_class);
 
     t_symbol *mode;
 
@@ -239,16 +239,16 @@ void *ganalyse_new([[maybe_unused]] t_symbol *s, int argc, t_atom *argv)
 
 extern "C"
 {
-    void ganalyse_setup(void)
+    void gravf_setup(void)
     {
-        ganalyse_class = class_new(
-            gensym("ganalyse"),
-            (t_newmethod)ganalyse_new,
+        gravf_class = class_new(
+            gensym("gravf"),
+            (t_newmethod)gravf_new,
             0,
-            sizeof(t_ganalyse),
+            sizeof(t_gravf),
             CLASS_DEFAULT,
             A_GIMME, 0);
 
-        class_addlist(ganalyse_class, (t_method)ganalyse_list);
+        class_addlist(gravf_class, (t_method)gravf_list);
     }
 }
