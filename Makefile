@@ -34,6 +34,7 @@ ifeq ($(OS),Windows_NT)
     PD_INCLUDE = ./pd/include
     LINKFLAGS = -shared
     EXT = pd_windows
+    LIBS = -L. -lpd
     CXXFLAGS_BASE = -Wall -Wextra -I$(PD_INCLUDE)
 endif
 
@@ -76,6 +77,12 @@ $(G_TARGET): $(G_OBJ)
 
 $(ANALYSE_TARGET): $(ANALYSE_OBJ)
 	$(CXX) $(LINKFLAGS) -o $@ $^
+
+$(G_TARGET): $(G_OBJ)
+	$(CXX) $(LINKFLAGS) -o $@ $^ $(LIBS)
+
+$(ANALYSE_TARGET): $(ANALYSE_OBJ)
+	$(CXX) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
 clean:
 	rm -rf $(BUILD_DIR)
